@@ -1,5 +1,4 @@
-#include "Keyboard.h"
-#include "Mouse.h"
+#include "HID-Project.h"
 
 byte rows[] = {7, 8, 9};
 byte cols[] = {10, 16};
@@ -10,14 +9,14 @@ const int CMD_DELAY = 100;
 const int BAUD_RATE = 115200;
 
 byte keys[COL_COUNT][ROW_COUNT];
-byte commands[COL_COUNT][ROW_COUNT];
+int commands[COL_COUNT][ROW_COUNT];
 
-#define KEY_0_0 KEY_LEFT_CTRL
-#define KEY_0_1 KEY_LEFT_SHIFT
-#define KEY_0_2 'a'
-#define KEY_1_0 'z'
-#define KEY_1_1 'v'
-#define KEY_1_2 'c'
+const int KEY_0_0 = KEY_LEFT_CTRL;
+const int KEY_0_1 = KEY_LEFT_SHIFT;
+const int KEY_0_2 = KEY_C;
+const int KEY_1_0 = KEY_Z;
+const int KEY_1_1 = KEY_V;
+const int KEY_1_2 = MEDIA_PLAY_PAUSE;
 
 void setup()
 {
@@ -82,10 +81,12 @@ void sendCommand(int col, int row)
 {
     if (keys[col][row] == 0)
     {
-        Keyboard.press(commands[col][row]);
+        Keyboard.press(KeyboardKeycode(commands[col][row]));
+        Consumer.press(ConsumerKeycode(commands[col][row]));
     }
     else
     {
-        Keyboard.release(commands[col][row]);
+        Keyboard.release(KeyboardKeycode(commands[col][row]));
+        Consumer.release(ConsumerKeycode(commands[col][row]));
     }
 }
