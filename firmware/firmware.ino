@@ -1,32 +1,36 @@
 #include "HID-Project.h"
 
-byte rows[] = {7, 8, 9};
-byte cols[] = {10, 16};
-
-const int ROW_COUNT = sizeof(rows) / sizeof(rows[0]);
-const int COL_COUNT = sizeof(cols) / sizeof(cols[0]);
-const int CMD_DELAY = 10;
-const int BAUD_RATE = 115200;
-
-byte keys[COL_COUNT][ROW_COUNT];
 struct KeyData
 {
     int key;
-    bool media;
+    bool isMedia;
 };
-KeyData commands[COL_COUNT][ROW_COUNT];
 
+// KEY MAPPINGS
 const KeyData KEY_0_0 = {KEY_LEFT_CTRL, false};
 const KeyData KEY_0_1 = {KEY_LEFT_SHIFT, false};
 const KeyData KEY_0_2 = {KEY_C, false};
 const KeyData KEY_1_0 = {KEY_Z, false};
 const KeyData KEY_1_1 = {KEY_V, false};
 const KeyData KEY_1_2 = {MEDIA_PLAY_PAUSE, true};
-const KeyData KEY_ENC_CW = {MEDIA_VOLUME_UP, true};
-const KeyData KEY_ENC_CCW = {MEDIA_VOLUME_DOWN, true};
 
+const KeyData KEY_ENC_R = {MEDIA_VOLUME_UP, true};
+const KeyData KEY_ENC_L = {MEDIA_VOLUME_DOWN, true};
+
+// PIN MAPPINGS
+byte rows[] = {7, 8, 9};
+byte cols[] = {10, 16};
 const int ENC_PIN_1 = 3;
 const int ENC_PIN_2 = 4;
+
+const int CMD_DELAY = 10;
+const int BAUD_RATE = 115200;
+
+const int ROW_COUNT = sizeof(rows) / sizeof(rows[0]);
+const int COL_COUNT = sizeof(cols) / sizeof(cols[0]);
+
+byte keys[COL_COUNT][ROW_COUNT];
+KeyData commands[COL_COUNT][ROW_COUNT];
 
 void setup()
 {
@@ -38,13 +42,12 @@ void setup()
     initializeCommands();
 }
 
-long oldPosition = -999;
-
 void loop()
 {
     pinMode(ENC_PIN_1, INPUT_PULLUP);
     pinMode(ENC_PIN_2, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(ENC_PIN_1), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(ENC_PIN_2), checkPosition, CHANGE);
 
     readKeysFromCurrentArduino();
     delay(CMD_DELAY);
@@ -113,7 +116,7 @@ void sendCommand(int col, int row)
 {
     if (keys[col][row] == 0)
     {
-        if (commands[col][row].media == true)
+        if (commands[col][row].isMedia == true)
         {
             Consumer.press(ConsumerKeycode(commands[col][row].key));
         }
@@ -124,7 +127,7 @@ void sendCommand(int col, int row)
     }
     else
     {
-        if (commands[col][row].media == true)
+        if (commands[col][row].isMedia == true)
         {
             Consumer.release(ConsumerKeycode(commands[col][row].key));
         }
@@ -139,24 +142,24 @@ void sendEncoderCommand(bool isCW)
 {
     if (isCW)
     {
-        if (KEY_ENC_CW.media == true)
+        if (KEY_ENC_R.isMedia == true)
         {
-            Consumer.write(ConsumerKeycode(KEY_ENC_CW.key));
+            Consumer.write(ConsumerKeycode(KEY_ENC_R.key));
         }
         else
         {
-            Keyboard.write(KeyboardKeycode(KEY_ENC_CW.key));
+            Keyboard.write(KeyboardKeycode(KEY_ENC_R.key));
         }
     }
     else
     {
-        if (KEY_ENC_CCW.media == true)
+        if (KEY_ENC_L.isMedia == true)
         {
-            Consumer.write(ConsumerKeycode(KEY_ENC_CCW.key));
+            Consumer.write(ConsumerKeycode(KEY_ENC_L.key));
         }
         else
         {
-            Keyboard.write(KeyboardKeycode(KEY_ENC_CCW.key));
+            Keyboard.write(KeyboardKeycode(KEY_ENC_L.key));
         }
     }
 }
