@@ -1,27 +1,44 @@
-#include "HID-Project.h"
-
-struct KeyData
-{
-    int key;
-    bool isMedia;
-};
+#include "Utils.h"
 
 // KEY MAPPINGS
-const KeyData KEY_0_0 = {KEY_LEFT_CTRL, false};
-const KeyData KEY_0_1 = {KEY_LEFT_SHIFT, false};
-const KeyData KEY_0_2 = {KEY_C, false};
-const KeyData KEY_1_0 = {KEY_Z, false};
-const KeyData KEY_1_1 = {KEY_V, false};
-const KeyData KEY_1_2 = {MEDIA_PLAY_PAUSE, true};
+const Key KEY_0_0 = K_QUOTE;
+const Key KEY_0_1 = K_1;
+const Key KEY_0_2 = K_2;
+const Key KEY_0_3 = K_3;
+const Key KEY_0_4 = K_4;
+const Key KEY_0_5 = K_5;
 
-const KeyData KEY_ENC_R = {MEDIA_VOLUME_UP, true};
-const KeyData KEY_ENC_L = {MEDIA_VOLUME_DOWN, true};
+const Key KEY_1_0 = K_TAB;
+const Key KEY_1_1 = K_Q;
+const Key KEY_1_2 = K_W;
+const Key KEY_1_3 = K_E;
+const Key KEY_1_4 = K_R;
+const Key KEY_1_5 = K_T;
+
+const Key KEY_2_0 = K_CAPS_LOCK;
+const Key KEY_2_1 = K_A;
+const Key KEY_2_2 = K_S;
+const Key KEY_2_3 = K_D;
+const Key KEY_2_4 = K_F;
+const Key KEY_2_5 = K_G;
+
+const Key KEY_3_0 = K_BACKSLASH;
+const Key KEY_3_1 = K_Z;
+const Key KEY_3_2 = K_X;
+const Key KEY_3_3 = K_C;
+const Key KEY_3_4 = K_V;
+const Key KEY_3_5 = K_B;
+
+const Key KEY_4_0 = K_LEFT_SHIFT;
+const Key KEY_4_1 = K_LEFT_CTRL;
+const Key KEY_4_2 = K_LEFT_ALT;
+const Key KEY_4_3 = K_LEFT_WINDOWS;
+const Key KEY_4_4 = K_ENTER;
+const Key KEY_4_5 = K_SPACE;
 
 // PIN MAPPINGS
-byte rows[] = {7, 8, 9};
-byte cols[] = {10, 16};
-const int ENC_PIN_1 = 3;
-const int ENC_PIN_2 = 4;
+byte cols[] = {5, 6, 7, 8, 9};
+byte rows[] = {19, 18, 15, 14, 16, 10};
 
 const int CMD_DELAY = 10;
 const int BAUD_RATE = 115200;
@@ -29,8 +46,8 @@ const int BAUD_RATE = 115200;
 const int ROW_COUNT = sizeof(rows) / sizeof(rows[0]);
 const int COL_COUNT = sizeof(cols) / sizeof(cols[0]);
 
-byte keys[COL_COUNT][ROW_COUNT];
-KeyData commands[COL_COUNT][ROW_COUNT];
+byte state_matrix[COL_COUNT][ROW_COUNT];
+Key keys[COL_COUNT][ROW_COUNT];
 
 void setup()
 {
@@ -44,29 +61,8 @@ void setup()
 
 void loop()
 {
-    pinMode(ENC_PIN_1, INPUT_PULLUP);
-    pinMode(ENC_PIN_2, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(ENC_PIN_1), checkPosition, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(ENC_PIN_2), checkPosition, CHANGE);
-
     readKeysFromCurrentArduino();
     delay(CMD_DELAY);
-}
-
-void checkPosition()
-{
-
-    if (digitalRead(ENC_PIN_1) == LOW)
-    {
-        if (digitalRead(ENC_PIN_2) == LOW)
-        {
-            sendEncoderCommand(true);
-        }
-        else
-        {
-            sendEncoderCommand(false);
-        }
-    }
 }
 
 void setInitialPinModes()
@@ -84,12 +80,40 @@ void setInitialPinModes()
 
 void initializeCommands()
 {
-    commands[0][0] = KEY_0_0;
-    commands[0][1] = KEY_0_1;
-    commands[0][2] = KEY_0_2;
-    commands[1][0] = KEY_1_0;
-    commands[1][1] = KEY_1_1;
-    commands[1][2] = KEY_1_2;
+    keys[0][0] = KEY_0_0;
+    keys[0][1] = KEY_0_1;
+    keys[0][2] = KEY_0_2;
+    keys[0][3] = KEY_0_3;
+    keys[0][4] = KEY_0_4;
+    keys[0][5] = KEY_0_5;
+
+    keys[1][0] = KEY_1_0;
+    keys[1][1] = KEY_1_1;
+    keys[1][2] = KEY_1_2;
+    keys[1][3] = KEY_1_3;
+    keys[1][4] = KEY_1_4;
+    keys[1][5] = KEY_1_5;
+
+    keys[2][0] = KEY_2_0;
+    keys[2][1] = KEY_2_1;
+    keys[2][2] = KEY_2_2;
+    keys[2][3] = KEY_2_3;
+    keys[2][4] = KEY_2_4;
+    keys[2][5] = KEY_2_5;
+
+    keys[3][0] = KEY_3_0;
+    keys[3][1] = KEY_3_1;
+    keys[3][2] = KEY_3_2;
+    keys[3][3] = KEY_3_3;
+    keys[3][4] = KEY_3_4;
+    keys[3][5] = KEY_3_5;
+
+    keys[4][0] = KEY_4_0;
+    keys[4][1] = KEY_4_1;
+    keys[4][2] = KEY_4_2;
+    keys[4][3] = KEY_4_3;
+    keys[4][4] = KEY_4_4;
+    keys[4][5] = KEY_4_5;
 }
 
 void readKeysFromCurrentArduino()
@@ -104,7 +128,7 @@ void readKeysFromCurrentArduino()
         {
             byte rowCol = rows[rowIndex];
             pinMode(rowCol, INPUT_PULLUP);
-            keys[colIndex][rowIndex] = digitalRead(rowCol);
+            state_matrix[colIndex][rowIndex] = digitalRead(rowCol);
             sendCommand(colIndex, rowIndex);
             pinMode(rowCol, INPUT);
         }
@@ -114,52 +138,12 @@ void readKeysFromCurrentArduino()
 
 void sendCommand(int col, int row)
 {
-    if (keys[col][row] == 0)
+    if (state_matrix[col][row] == 0)
     {
-        if (commands[col][row].isMedia == true)
-        {
-            Consumer.press(ConsumerKeycode(commands[col][row].key));
-        }
-        else
-        {
-            Keyboard.press(KeyboardKeycode(commands[col][row].key));
-        }
+        keys[col][row].press();
     }
     else
     {
-        if (commands[col][row].isMedia == true)
-        {
-            Consumer.release(ConsumerKeycode(commands[col][row].key));
-        }
-        else
-        {
-            Keyboard.release(KeyboardKeycode(commands[col][row].key));
-        }
-    }
-}
-
-void sendEncoderCommand(bool isCW)
-{
-    if (isCW)
-    {
-        if (KEY_ENC_R.isMedia == true)
-        {
-            Consumer.write(ConsumerKeycode(KEY_ENC_R.key));
-        }
-        else
-        {
-            Keyboard.write(KeyboardKeycode(KEY_ENC_R.key));
-        }
-    }
-    else
-    {
-        if (KEY_ENC_L.isMedia == true)
-        {
-            Consumer.write(ConsumerKeycode(KEY_ENC_L.key));
-        }
-        else
-        {
-            Keyboard.write(KeyboardKeycode(KEY_ENC_L.key));
-        }
+        keys[col][row].release();
     }
 }
