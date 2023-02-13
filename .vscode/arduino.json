@@ -1,0 +1,6 @@
+{
+    "sketch": "firmware/firmware.ino",
+    "board": "arduino:avr:micro",
+    "port": "/dev/ttyACM0",
+    "output": "~/ArduinoOutput"
+}
