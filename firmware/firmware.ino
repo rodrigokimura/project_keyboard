@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include "Wire.h"
 
 // KEY MAPPINGS
 const Key KEY_0_0 = K_QUOTE;
@@ -40,8 +41,10 @@ const Key KEY_4_5 = K_SPACE;
 byte cols[] = {5, 6, 7, 8, 9};
 byte rows[] = {19, 18, 15, 14, 16, 10};
 
+char matrix[30];
+
 const int CMD_DELAY = 10;
-const int BAUD_RATE = 115200;
+const uint32_t BAUD_RATE = 115200;
 
 const int ROW_COUNT = sizeof(rows) / sizeof(rows[0]);
 const int COL_COUNT = sizeof(cols) / sizeof(cols[0]);
@@ -52,7 +55,8 @@ Key keys[COL_COUNT][ROW_COUNT];
 void setup()
 {
     Serial.begin(BAUD_RATE);
-    Mouse.begin();
+    Wire.begin();
+    Wire.setClock(400000);
     Keyboard.begin();
 
     setInitialPinModes();
@@ -62,6 +66,7 @@ void setup()
 void loop()
 {
     readKeysFromCurrentArduino();
+    readKeysFromSecondaryArduino();
     delay(CMD_DELAY);
 }
 
@@ -134,6 +139,18 @@ void readKeysFromCurrentArduino()
         }
         pinMode(curCol, INPUT);
     }
+}
+
+void readKeysFromSecondaryArduino()
+{
+    Wire.requestFrom(8, 6, true);
+
+    while (Wire.available())
+    {
+        byte b = Wire.read();
+        Serial.print(b, HEX);
+    }
+    Serial.println();
 }
 
 void sendCommand(int col, int row)
