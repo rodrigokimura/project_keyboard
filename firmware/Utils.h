@@ -1,5 +1,11 @@
 #include "HID-Project.h"
 
+struct Coords
+{
+    int row;
+    int col;
+};
+
 struct _Key
 {
     int key;

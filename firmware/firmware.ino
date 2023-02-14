@@ -1,70 +1,55 @@
 #include "Keypad.h"
+#include "Wire.h"
 
 #include "Utils.h"
-#include "Wire.h"
+#include "Keys.h"
 
 const boolean IS_LEFT_SIDE = true;
 
-// KEY MAPPINGS
-const _Key KEY_0_0 = K_QUOTE;
-const _Key KEY_0_1 = K_1;
-const _Key KEY_0_2 = K_2;
-const _Key KEY_0_3 = K_3;
-const _Key KEY_0_4 = K_4;
-const _Key KEY_0_5 = K_5;
-
-const _Key KEY_1_0 = K_TAB;
-const _Key KEY_1_1 = K_Q;
-const _Key KEY_1_2 = K_W;
-const _Key KEY_1_3 = K_E;
-const _Key KEY_1_4 = K_R;
-const _Key KEY_1_5 = K_T;
-
-const _Key KEY_2_0 = K_CAPS_LOCK;
-const _Key KEY_2_1 = K_A;
-const _Key KEY_2_2 = K_S;
-const _Key KEY_2_3 = K_D;
-const _Key KEY_2_4 = K_F;
-const _Key KEY_2_5 = K_G;
-
-const _Key KEY_3_0 = K_BACKSLASH;
-const _Key KEY_3_1 = K_Z;
-const _Key KEY_3_2 = K_X;
-const _Key KEY_3_3 = K_C;
-const _Key KEY_3_4 = K_V;
-const _Key KEY_3_5 = K_B;
-
-const _Key KEY_4_0 = K_LEFT_SHIFT;
-const _Key KEY_4_1 = K_LEFT_CTRL;
-const _Key KEY_4_2 = K_LEFT_ALT;
-const _Key KEY_4_3 = K_LEFT_WINDOWS;
-const _Key KEY_4_4 = K_ENTER;
-const _Key KEY_4_5 = K_SPACE;
+unsigned long startTime = 0;
+unsigned int debounceTime = 50;
 
 // PIN MAPPINGS
-byte leftCols[] = {5, 6, 7, 8, 9};
-byte leftRows[] = {19, 18, 15, 14, 16, 10};
+byte lRows[] = {5, 6, 7, 8, 9};
+byte lCols[] = {19, 18, 15, 14, 16, 10};
 
-char matrix[30];
+byte rRows[] = {18, 15, 14, 16, 10};
+byte rCols[] = {9, 8, 7, 6, 5, 4};
 
-const int CMD_DELAY = 10;
 const uint32_t BAUD_RATE = 115200;
+const uint32_t I2C_CLOCK = 400000;
 
-const int LEFT_ROW_COUNT = sizeof(leftRows) / sizeof(leftRows[0]);
-const int LEFT_COL_COUNT = sizeof(leftCols) / sizeof(leftCols[0]);
+const int L_COL_COUNT = sizeof(lCols) / sizeof(lCols[0]);
+const int L_ROW_COUNT = sizeof(lRows) / sizeof(lRows[0]);
 
-byte state_matrix[LEFT_COL_COUNT][LEFT_ROW_COUNT];
-_Key leftKeys[LEFT_COL_COUNT][LEFT_ROW_COUNT];
+const int R_COL_COUNT = sizeof(rCols) / sizeof(rCols[0]);
+const int R_ROW_COUNT = sizeof(rRows) / sizeof(rRows[0]);
 
-// SECONDARY
-byte rows[] = {9, 8, 7, 6, 5, 4};
-byte cols[] = {18, 15, 14, 16, 10};
+_Key lKeys[L_ROW_COUNT][L_COL_COUNT] = {
+    {L_KEY_0_0, L_KEY_0_1, L_KEY_0_2, L_KEY_0_3, L_KEY_0_4, L_KEY_0_5},
+    {L_KEY_1_0, L_KEY_1_1, L_KEY_1_2, L_KEY_1_3, L_KEY_1_4, L_KEY_1_5},
+    {L_KEY_2_0, L_KEY_2_1, L_KEY_2_2, L_KEY_2_3, L_KEY_2_4, L_KEY_2_5},
+    {L_KEY_3_0, L_KEY_3_1, L_KEY_3_2, L_KEY_3_3, L_KEY_3_4, L_KEY_3_5},
+    {L_KEY_4_0, L_KEY_4_1, L_KEY_4_2, L_KEY_4_3, L_KEY_4_4, L_KEY_4_5},
+};
+_Key rKeys[R_ROW_COUNT][R_COL_COUNT] = {
+    {R_KEY_0_0, R_KEY_0_1, R_KEY_0_2, R_KEY_0_3, R_KEY_0_4, R_KEY_0_5},
+    {R_KEY_1_0, R_KEY_1_1, R_KEY_1_2, R_KEY_1_3, R_KEY_1_4, R_KEY_1_5},
+    {R_KEY_2_0, R_KEY_2_1, R_KEY_2_2, R_KEY_2_3, R_KEY_2_4, R_KEY_2_5},
+    {R_KEY_3_0, R_KEY_3_1, R_KEY_3_2, R_KEY_3_3, R_KEY_3_4, R_KEY_3_5},
+    {R_KEY_4_0, R_KEY_4_1, R_KEY_4_2, R_KEY_4_3, R_KEY_4_4, R_KEY_4_5},
+};
 
-const int ROW_COUNT = sizeof(rows) / sizeof(rows[0]);
-const int COL_COUNT = sizeof(cols) / sizeof(cols[0]);
-
-char keys[ROW_COUNT][COL_COUNT] = {
-    {'0', '1', '2', '3', '4'},
+char _lKeypadKeyNames[L_COL_COUNT][L_ROW_COUNT] = {
+    {'z', '1', '2', '3', '4'},
+    {'5', '6', '7', '8', '9'},
+    {'a', 'b', 'c', 'd', 'e'},
+    {'f', 'g', 'h', 'i', 'j'},
+    {'k', 'l', 'm', 'n', 'o'},
+    {'p', 'q', 'r', 's', 't'},
+};
+char _rKeypadKeyNames[R_COL_COUNT][R_ROW_COUNT] = {
+    {'z', '1', '2', '3', '4'},
     {'5', '6', '7', '8', '9'},
     {'a', 'b', 'c', 'd', 'e'},
     {'f', 'g', 'h', 'i', 'j'},
@@ -72,36 +57,32 @@ char keys[ROW_COUNT][COL_COUNT] = {
     {'p', 'q', 'r', 's', 't'},
 };
 
-Keypad keypad = Keypad(makeKeymap(keys), rows, cols, ROW_COUNT, COL_COUNT);
+Keypad lKeypad = Keypad(makeKeymap(_lKeypadKeyNames), lCols, lRows, L_COL_COUNT, L_ROW_COUNT);
+Keypad rKeypad = Keypad(makeKeymap(_rKeypadKeyNames), rCols, rRows, R_COL_COUNT, R_ROW_COUNT);
 
 void setup()
 {
+    Serial.begin(BAUD_RATE);
     if (IS_LEFT_SIDE)
     {
-
-        Serial.begin(BAUD_RATE);
         Wire.begin();
-        Wire.setClock(400000);
         Keyboard.begin();
-
-        setInitialPinModes();
-        initializeCommands();
+        lKeypad.addEventListener(keypadEvent);
     }
     else
     {
-        Serial.begin(BAUD_RATE);
         Wire.begin(8);
-        Wire.setClock(400000);
-        keypad.setDebounceTime(1);
+        rKeypad.setDebounceTime(1);
         Wire.onRequest(requestEvent);
     }
+    Wire.setClock(I2C_CLOCK);
 }
 
 void requestEvent()
 {
-    for (int i = 0; i < ROW_COUNT; i++)
+    for (int c = 0; c < R_COL_COUNT; c++)
     {
-        Wire.write(keypad.bitMap[i]);
+        Wire.write(rKeypad.bitMap[c]);
     }
 }
 
@@ -109,107 +90,84 @@ void loop()
 {
     if (IS_LEFT_SIDE)
     {
-        readKeysFromCurrentArduino();
+        lKeypad.getKeys();
         readKeysFromSecondaryArduino();
-        delay(CMD_DELAY);
     }
     else
     {
-        keypad.getKeys();
+        rKeypad.getKeys();
     }
 }
 
-void setInitialPinModes()
+void keypadEvent(KeypadEvent key)
 {
-    for (int x = 0; x < LEFT_ROW_COUNT; x++)
+    Coords coords = getCoords(key);
+    _Key _key = lKeys[coords.row][coords.col];
+    switch (lKeypad.getState())
     {
-        pinMode(leftRows[x], INPUT);
-    }
-
-    for (int x = 0; x < LEFT_COL_COUNT; x++)
-    {
-        pinMode(leftCols[x], INPUT_PULLUP);
+    case PRESSED:
+        _key.press();
+    case RELEASED:
+        _key.release();
+    case HOLD:
+        Serial.println(key);
+    case IDLE:
+        Serial.println(key);
     }
 }
 
-void initializeCommands()
+Coords getCoords(char k)
 {
-    leftKeys[0][0] = KEY_0_0;
-    leftKeys[0][1] = KEY_0_1;
-    leftKeys[0][2] = KEY_0_2;
-    leftKeys[0][3] = KEY_0_3;
-    leftKeys[0][4] = KEY_0_4;
-    leftKeys[0][5] = KEY_0_5;
+    Coords coords;
 
-    leftKeys[1][0] = KEY_1_0;
-    leftKeys[1][1] = KEY_1_1;
-    leftKeys[1][2] = KEY_1_2;
-    leftKeys[1][3] = KEY_1_3;
-    leftKeys[1][4] = KEY_1_4;
-    leftKeys[1][5] = KEY_1_5;
-
-    leftKeys[2][0] = KEY_2_0;
-    leftKeys[2][1] = KEY_2_1;
-    leftKeys[2][2] = KEY_2_2;
-    leftKeys[2][3] = KEY_2_3;
-    leftKeys[2][4] = KEY_2_4;
-    leftKeys[2][5] = KEY_2_5;
-
-    leftKeys[3][0] = KEY_3_0;
-    leftKeys[3][1] = KEY_3_1;
-    leftKeys[3][2] = KEY_3_2;
-    leftKeys[3][3] = KEY_3_3;
-    leftKeys[3][4] = KEY_3_4;
-    leftKeys[3][5] = KEY_3_5;
-
-    leftKeys[4][0] = KEY_4_0;
-    leftKeys[4][1] = KEY_4_1;
-    leftKeys[4][2] = KEY_4_2;
-    leftKeys[4][3] = KEY_4_3;
-    leftKeys[4][4] = KEY_4_4;
-    leftKeys[4][5] = KEY_4_5;
-}
-
-void readKeysFromCurrentArduino()
-{
-    for (int colIndex = 0; colIndex < LEFT_COL_COUNT; colIndex++)
+    for (int c = 0; c < L_COL_COUNT; c++)
     {
-        byte curCol = leftCols[colIndex];
-        pinMode(curCol, OUTPUT);
-        digitalWrite(curCol, LOW);
-
-        for (int rowIndex = 0; rowIndex < LEFT_ROW_COUNT; rowIndex++)
+        for (int r = 0; r < L_ROW_COUNT; r++)
         {
-            byte rowCol = leftRows[rowIndex];
-            pinMode(rowCol, INPUT_PULLUP);
-            state_matrix[colIndex][rowIndex] = digitalRead(rowCol);
-            sendCommand(colIndex, rowIndex);
-            pinMode(rowCol, INPUT);
+            if (_lKeypadKeyNames[c][r] == k)
+            {
+                coords.row = r;
+                coords.col = c;
+                return coords;
+            }
         }
-        pinMode(curCol, INPUT);
     }
 }
 
 void readKeysFromSecondaryArduino()
 {
+    if ((millis() - startTime) <= debounceTime)
+    {
+        return;
+    }
+    startTime = millis();
+    Coords coords;
+
     Wire.requestFrom(8, 6, true);
 
+    int c = 0;
     while (Wire.available())
     {
+        coords.col = c;
         byte b = Wire.read();
-        Serial.print(b, HEX);
+        for (int r = 0; r < R_COL_COUNT; r++)
+        {
+            coords.row = r;
+            boolean pressed = bitRead(b, r);
+            sendCommand(coords, pressed);
+        }
+        c++;
     }
-    Serial.println();
 }
 
-void sendCommand(int col, int row)
+void sendCommand(Coords c, boolean pressed)
 {
-    if (state_matrix[col][row] == 0)
+    if (pressed)
     {
-        leftKeys[col][row].press();
+        rKeys[c.row][c.col].press();
     }
     else
     {
-        leftKeys[col][row].release();
+        rKeys[c.row][c.col].release();
     }
 }
