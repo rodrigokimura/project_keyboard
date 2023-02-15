@@ -14,17 +14,19 @@ const byte R_COL_PINS[] = {9, 8, 7, 6, 5, 4};
 const uint32_t ROW_COUNT = sizeof(L_ROW_PINS) / sizeof(L_ROW_PINS[0]);
 const uint32_t COL_COUNT = sizeof(L_COL_PINS) / sizeof(L_COL_PINS[0]);
 
-typedef _Key Keys[ROW_COUNT][COL_COUNT];
+typedef MultiKey Keys[ROW_COUNT][COL_COUNT];
 
 const uint32_t BAUD_RATE = 115200;
 const uint32_t I2C_CLOCK = 400000;
 
 byte keysStateBuffer[COL_COUNT];
 unsigned long startTime = 0;
+byte layer = 0;
 
 #ifdef MASTER
 
-const uint32_t DEBOUNCE_TIME = 50;
+const uint32_t DEBOUNCE_TIME = 70;
+
 Keys lKeys = {
     {L_KEY_0_0, L_KEY_0_1, L_KEY_0_2, L_KEY_0_3, L_KEY_0_4, L_KEY_0_5},
     {L_KEY_1_0, L_KEY_1_1, L_KEY_1_2, L_KEY_1_3, L_KEY_1_4, L_KEY_1_5},
@@ -105,11 +107,11 @@ void sendCommand(Coords c, boolean pressed, boolean isLeft)
     Keys &keys = isLeft ? lKeys : rKeys;
     if (pressed)
     {
-        keys[c.row][c.col].press();
+        keys[c.row][c.col].press(layer);
     }
     else
     {
-        keys[c.row][c.col].release();
+        keys[c.row][c.col].release(layer);
     }
 }
 

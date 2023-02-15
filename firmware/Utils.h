@@ -16,6 +16,8 @@ struct _Key
 {
     const int key;
     const bool isMedia;
+    _Key(int k, bool m) : key(k), isMedia(m) {}
+    _Key() : key(KEY_RESERVED), isMedia(false) {}
 
     void press()
     {
@@ -39,6 +41,37 @@ struct _Key
         else
         {
             Keyboard.release(KeyboardKeycode(key));
+        }
+    }
+};
+
+struct MultiKey
+{
+    _Key keys[2];
+    byte modifier;
+    MultiKey(_Key k1, _Key k2) : keys{k1, k2}, modifier(0) {}
+    MultiKey(byte mod) : keys{_Key(), _Key()}, modifier(mod) {}
+
+    void press(byte &layer)
+    {
+        if (modifier == 1 || modifier == 2)
+        {
+            layer = modifier;
+        }
+        else
+        {
+            keys[layer > 0 ? 1 : 0].press();
+        }
+    }
+    void release(byte &layer)
+    {
+        if (modifier > 0 && layer == modifier)
+        {
+            layer = 0;
+        }
+        else
+        {
+            keys[layer > 0 ? 1 : 0].release();
         }
     }
 };
