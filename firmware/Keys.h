@@ -1,4 +1,3 @@
-// KEY MAPPINGS
 const _Key L_KEY_0_0 = K_QUOTE;
 const _Key L_KEY_0_1 = K_1;
 const _Key L_KEY_0_2 = K_2;
@@ -65,7 +64,7 @@ const _Key R_KEY_3_5 = K_SLASH;
 
 const _Key R_KEY_4_0 = K_ESC;
 const _Key R_KEY_4_1 = K_BACKSPACE;
-const _Key R_KEY_4_2 = K_LEFT_ALT;
-const _Key R_KEY_4_3 = K_LEFT_WINDOWS;
+const _Key R_KEY_4_2 = K_RIGHT_ALT;
+const _Key R_KEY_4_3 = K_RIGHT_GUI;
 const _Key R_KEY_4_4 = K_ENTER;
 const _Key R_KEY_4_5 = K_SPACE;
