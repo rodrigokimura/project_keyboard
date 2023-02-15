@@ -125,14 +125,14 @@ void rSendCommand(Coords c, boolean pressed)
 
 void readKeysStateFromSlave(void (*cb)(Coords c, boolean pressed))
 {
-    Wire.requestFrom(8, 6, true);
+    Wire.requestFrom(8, ROW_COUNT, true);
 
-    for (byte c = 0; c < COL_COUNT; c++)
+    for (byte r = 0; r < ROW_COUNT; r++)
     {
         byte b = Wire.read();
-        for (byte r = 0; r < ROW_COUNT; r++)
+        for (byte c = 0; c < COL_COUNT; c++)
         {
-            cb({r, c}, bitRead(b, r));
+            cb({r, c}, bitRead(b, c));
         }
     }
 }
@@ -141,7 +141,7 @@ void readKeysStateFromSlave(void (*cb)(Coords c, boolean pressed))
 
 void sendToBuffer(Coords c, boolean pressed)
 {
-    bitWrite(keysStateBuffer[c.col], c.row, pressed);
+    bitWrite(keysStateBuffer[c.row], c.col, pressed);
 }
 
 #endif
