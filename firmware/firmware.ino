@@ -1,4 +1,3 @@
-#include "Keypad.h"
 #include "Wire.h"
 
 #include "Utils.h"
@@ -6,24 +5,25 @@
 
 const boolean IS_LEFT_SIDE = true;
 
-unsigned long startTime = 0;
-unsigned int debounceTime = 50;
+const uint32_t L_DEBOUNCE_TIME = 50;
+const uint32_t R_DEBOUNCE_TIME = 1;
 
 // PIN MAPPINGS
-byte lRows[] = {5, 6, 7, 8, 9};
-byte lCols[] = {19, 18, 15, 14, 16, 10};
+const byte L_ROW_PINS[] = {5, 6, 7, 8, 9};
+const byte L_COL_PINS[] = {19, 18, 15, 14, 16, 10};
+const byte R_ROW_PINS[] = {18, 15, 14, 16, 10};
+const byte R_COL_PINS[] = {9, 8, 7, 6, 5, 4};
 
-byte rRows[] = {18, 15, 14, 16, 10};
-byte rCols[] = {9, 8, 7, 6, 5, 4};
+const uint32_t L_COL_COUNT = sizeof(L_COL_PINS) / sizeof(L_COL_PINS[0]);
+const uint32_t L_ROW_COUNT = sizeof(L_ROW_PINS) / sizeof(L_ROW_PINS[0]);
+const uint32_t R_COL_COUNT = sizeof(R_COL_PINS) / sizeof(R_COL_PINS[0]);
+const uint32_t R_ROW_COUNT = sizeof(R_ROW_PINS) / sizeof(R_ROW_PINS[0]);
 
 const uint32_t BAUD_RATE = 115200;
 const uint32_t I2C_CLOCK = 400000;
 
-const int L_COL_COUNT = sizeof(lCols) / sizeof(lCols[0]);
-const int L_ROW_COUNT = sizeof(lRows) / sizeof(lRows[0]);
-
-const int R_COL_COUNT = sizeof(rCols) / sizeof(rCols[0]);
-const int R_ROW_COUNT = sizeof(rRows) / sizeof(rRows[0]);
+byte keysState[R_COL_COUNT];
+unsigned long startTime = 0;
 
 _Key lKeys[L_ROW_COUNT][L_COL_COUNT] = {
     {L_KEY_0_0, L_KEY_0_1, L_KEY_0_2, L_KEY_0_3, L_KEY_0_4, L_KEY_0_5},
@@ -32,6 +32,7 @@ _Key lKeys[L_ROW_COUNT][L_COL_COUNT] = {
     {L_KEY_3_0, L_KEY_3_1, L_KEY_3_2, L_KEY_3_3, L_KEY_3_4, L_KEY_3_5},
     {L_KEY_4_0, L_KEY_4_1, L_KEY_4_2, L_KEY_4_3, L_KEY_4_4, L_KEY_4_5},
 };
+
 _Key rKeys[R_ROW_COUNT][R_COL_COUNT] = {
     {R_KEY_0_0, R_KEY_0_1, R_KEY_0_2, R_KEY_0_3, R_KEY_0_4, R_KEY_0_5},
     {R_KEY_1_0, R_KEY_1_1, R_KEY_1_2, R_KEY_1_3, R_KEY_1_4, R_KEY_1_5},
@@ -40,26 +41,6 @@ _Key rKeys[R_ROW_COUNT][R_COL_COUNT] = {
     {R_KEY_4_0, R_KEY_4_1, R_KEY_4_2, R_KEY_4_3, R_KEY_4_4, R_KEY_4_5},
 };
 
-char _lKeypadKeyNames[L_COL_COUNT][L_ROW_COUNT] = {
-    {'z', '1', '2', '3', '4'},
-    {'5', '6', '7', '8', '9'},
-    {'a', 'b', 'c', 'd', 'e'},
-    {'f', 'g', 'h', 'i', 'j'},
-    {'k', 'l', 'm', 'n', 'o'},
-    {'p', 'q', 'r', 's', 't'},
-};
-char _rKeypadKeyNames[R_COL_COUNT][R_ROW_COUNT] = {
-    {'z', '1', '2', '3', '4'},
-    {'5', '6', '7', '8', '9'},
-    {'a', 'b', 'c', 'd', 'e'},
-    {'f', 'g', 'h', 'i', 'j'},
-    {'k', 'l', 'm', 'n', 'o'},
-    {'p', 'q', 'r', 's', 't'},
-};
-
-Keypad lKeypad = Keypad(makeKeymap(_lKeypadKeyNames), lCols, lRows, L_COL_COUNT, L_ROW_COUNT);
-Keypad rKeypad = Keypad(makeKeymap(_rKeypadKeyNames), rCols, rRows, R_COL_COUNT, R_ROW_COUNT);
-
 void setup()
 {
     Serial.begin(BAUD_RATE);
@@ -67,100 +48,80 @@ void setup()
     {
         Wire.begin();
         Keyboard.begin();
-        lKeypad.addEventListener(keypadEvent);
     }
     else
     {
         Wire.begin(8);
-        rKeypad.setDebounceTime(1);
         Wire.onRequest(requestEvent);
     }
     Wire.setClock(I2C_CLOCK);
-}
-
-void requestEvent()
-{
-    for (int c = 0; c < R_COL_COUNT; c++)
-    {
-        Wire.write(rKeypad.bitMap[c]);
-    }
 }
 
 void loop()
 {
     if (IS_LEFT_SIDE)
     {
-        lKeypad.getKeys();
+        if ((millis() - startTime) <= L_DEBOUNCE_TIME)
+        {
+            return;
+        }
+        startTime = millis();
+        scanKeys({L_ROW_COUNT, L_COL_COUNT}, L_ROW_PINS, L_COL_PINS, lSendCommand);
         readKeysFromSecondaryArduino();
     }
     else
     {
-        rKeypad.getKeys();
-    }
-}
-
-void keypadEvent(KeypadEvent key)
-{
-    Coords coords = getCoords(key);
-    _Key _key = lKeys[coords.row][coords.col];
-    switch (lKeypad.getState())
-    {
-    case PRESSED:
-        _key.press();
-    case RELEASED:
-        _key.release();
-    case HOLD:
-        Serial.println(key);
-    case IDLE:
-        Serial.println(key);
-    }
-}
-
-Coords getCoords(char k)
-{
-    Coords coords;
-
-    for (int c = 0; c < L_COL_COUNT; c++)
-    {
-        for (int r = 0; r < L_ROW_COUNT; r++)
+        if ((millis() - startTime) <= R_DEBOUNCE_TIME)
         {
-            if (_lKeypadKeyNames[c][r] == k)
-            {
-                coords.row = r;
-                coords.col = c;
-                return coords;
-            }
+            return;
         }
+        startTime = millis();
+        scanKeys({R_ROW_COUNT, R_COL_COUNT}, R_ROW_PINS, R_COL_PINS, registerToBitMap);
     }
 }
 
-void readKeysFromSecondaryArduino()
+void requestEvent()
 {
-    if ((millis() - startTime) <= debounceTime)
+    for (int c = 0; c < R_COL_COUNT; c++)
     {
-        return;
-    }
-    startTime = millis();
-    Coords coords;
-
-    Wire.requestFrom(8, 6, true);
-
-    int c = 0;
-    while (Wire.available())
-    {
-        coords.col = c;
-        byte b = Wire.read();
-        for (int r = 0; r < R_COL_COUNT; r++)
-        {
-            coords.row = r;
-            boolean pressed = bitRead(b, r);
-            sendCommand(coords, pressed);
-        }
-        c++;
+        Wire.write(keysState[c]);
     }
 }
 
-void sendCommand(Coords c, boolean pressed)
+void scanKeys(Size size, const byte rows[], const byte columns[], void (*function)(Coords c, boolean pressed))
+{
+    for (byte c = 0; c < size.columns; c++)
+    {
+        pinMode(columns[c], INPUT_PULLUP);
+    }
+
+    for (byte r = 0; r < size.rows; r++)
+    {
+        pinMode(rows[r], OUTPUT);
+        digitalWrite(rows[r], LOW);
+        for (byte c = 0; c < size.columns; c++)
+        {
+            boolean pressed = !digitalRead(columns[c]);
+            function({r, c}, pressed);
+        }
+        digitalWrite(rows[r], HIGH);
+        pinMode(rows[r], INPUT);
+    }
+}
+
+void lSendCommand(Coords c, boolean pressed)
+{
+    if (pressed)
+    {
+        lKeys[c.row][c.col].press();
+    }
+    else
+    {
+        lKeys[c.row][c.col].release();
+    }
+}
+
+void rSendCommand(Coords c, boolean pressed)
 {
     if (pressed)
     {
@@ -170,4 +131,26 @@ void sendCommand(Coords c, boolean pressed)
     {
         rKeys[c.row][c.col].release();
     }
+}
+
+void readKeysFromSecondaryArduino()
+{
+    Wire.requestFrom(8, 6, true);
+
+    byte c = 0;
+    while (Wire.available())
+    {
+        byte b = Wire.read();
+        for (byte r = 0; r < R_COL_COUNT; r++)
+        {
+            boolean pressed = bitRead(b, r);
+            rSendCommand({r, c}, pressed);
+        }
+        c++;
+    }
+}
+
+void registerToBitMap(Coords c, boolean pressed)
+{
+    bitWrite(keysState[c.col], c.row, pressed);
 }

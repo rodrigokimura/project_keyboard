@@ -17,7 +17,6 @@
             "includePath": [
                 "/home/rodrigokimura/.arduino15/packages/arduino/hardware/avr/1.8.6/cores/arduino",
                 "/home/rodrigokimura/.arduino15/packages/arduino/hardware/avr/1.8.6/variants/micro",
-                "/home/rodrigokimura/Arduino/libraries/Keypad/src",
                 "/home/rodrigokimura/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/Wire/src",
                 "/home/rodrigokimura/Arduino/libraries/HID-Project/src",
                 "/home/rodrigokimura/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/HID/src",

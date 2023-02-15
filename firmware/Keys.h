@@ -30,7 +30,7 @@ const _Key L_KEY_3_5 = K_B;
 const _Key L_KEY_4_0 = K_LEFT_SHIFT;
 const _Key L_KEY_4_1 = K_LEFT_CTRL;
 const _Key L_KEY_4_2 = K_LEFT_ALT;
-const _Key L_KEY_4_3 = _HID_KEYBOARD_LEFT_GUI;
+const _Key L_KEY_4_3 = K_LEFT_GUI;
 const _Key L_KEY_4_4 = K_ENTER;
 const _Key L_KEY_4_5 = K_SPACE;
 

@@ -2,14 +2,20 @@
 
 struct Coords
 {
-    int row;
-    int col;
+    const byte row;
+    const byte col;
+};
+
+struct Size
+{
+    const byte rows;
+    const byte columns;
 };
 
 struct _Key
 {
-    int key;
-    bool isMedia;
+    const int key;
+    const bool isMedia;
 
     void press()
     {
