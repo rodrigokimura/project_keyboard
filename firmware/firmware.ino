@@ -25,7 +25,7 @@ byte layer = 0;
 
 #ifdef MASTER
 
-const uint32_t DEBOUNCE_TIME = 70;
+const uint32_t DEBOUNCE_TIME = 10;
 
 Keys lKeys = {
     {L_KEY_0_0, L_KEY_0_1, L_KEY_0_2, L_KEY_0_3, L_KEY_0_4, L_KEY_0_5},
