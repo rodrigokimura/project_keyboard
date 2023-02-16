@@ -1,7 +1,7 @@
 const MultiKey L_MOD = MultiKey(1);
 const MultiKey R_MOD = MultiKey(2);
 
-const MultiKey L_KEY_0_0 = {K_QUOTE, K_QUOTE};
+const MultiKey L_KEY_0_0 = {K_ESC, K_ESC};
 const MultiKey L_KEY_0_1 = {K_1, K_1};
 const MultiKey L_KEY_0_2 = {K_2, K_2};
 const MultiKey L_KEY_0_3 = {K_3, K_3};
@@ -22,17 +22,17 @@ const MultiKey L_KEY_2_3 = {K_D, K_D};
 const MultiKey L_KEY_2_4 = {K_F, K_F};
 const MultiKey L_KEY_2_5 = {K_G, K_G};
 
-const MultiKey L_KEY_3_0 = {K_BACKSLASH, K_BACKSLASH};
+const MultiKey L_KEY_3_0 = {K_LEFT_SHIFT, K_LEFT_SHIFT};
 const MultiKey L_KEY_3_1 = {K_Z, K_Z};
 const MultiKey L_KEY_3_2 = {K_X, K_X};
 const MultiKey L_KEY_3_3 = {K_C, K_C};
 const MultiKey L_KEY_3_4 = {K_V, K_V};
 const MultiKey L_KEY_3_5 = {K_B, K_B};
 
-const MultiKey L_KEY_4_0 = {K_LEFT_SHIFT, K_LEFT_SHIFT};
-const MultiKey L_KEY_4_1 = {K_LEFT_CTRL, K_LEFT_CTRL};
+const MultiKey L_KEY_4_0 = {K_LEFT_CTRL, K_LEFT_CTRL};
+const MultiKey L_KEY_4_1 = {K_LEFT_GUI, K_LEFT_GUI};
 const MultiKey L_KEY_4_2 = {K_LEFT_ALT, K_LEFT_ALT};
-const MultiKey L_KEY_4_3 = {K_LEFT_GUI, K_LEFT_GUI};
+const MultiKey L_KEY_4_3 = {K_SPACE, K_SPACE};
 const MultiKey L_KEY_4_4 = {K_ENTER, K_ENTER};
 const MultiKey L_KEY_4_5 = L_MOD;
 
@@ -66,8 +66,8 @@ const MultiKey R_KEY_3_4 = {K_SEMICOLON, K_SEMICOLON};
 const MultiKey R_KEY_3_5 = {K_SLASH, K_SLASH};
 
 const MultiKey R_KEY_4_0 = R_MOD;
-const MultiKey R_KEY_4_1 = {K_SPACE, K_SPACE};
-const MultiKey R_KEY_4_2 = {K_RIGHT_ALT, K_RIGHT_ALT};
-const MultiKey R_KEY_4_3 = {K_RIGHT_GUI, K_RIGHT_GUI};
-const MultiKey R_KEY_4_4 = {K_ENTER, K_ENTER};
-const MultiKey R_KEY_4_5 = {K_SPACE, K_SPACE};
+const MultiKey R_KEY_4_1 = {K_BACKSPACE, K_DELETE};
+const MultiKey R_KEY_4_2 = {K_SPACE, K_SPACE};
+const MultiKey R_KEY_4_3 = {K_RIGHT_ALT, K_RIGHT_ALT};
+const MultiKey R_KEY_4_4 = {K_RIGHT_GUI, K_RIGHT_GUI};
+const MultiKey R_KEY_4_5 = {K_RIGHT_CTRL, K_RIGHT_CTRL};
