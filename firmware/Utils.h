@@ -56,6 +56,7 @@ struct MultiKey
 {
     Key keys[2];
     byte modifier;
+    MultiKey(Key k) : keys{k, k}, modifier(0) {}
     MultiKey(Key k1, Key k2) : keys{k1, k2}, modifier(0) {}
     MultiKey(byte mod) : keys{Key(), Key()}, modifier(mod) {}
 
