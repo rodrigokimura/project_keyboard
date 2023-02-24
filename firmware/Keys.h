@@ -1,3 +1,5 @@
+#include "MultiKey.h"
+
 const MultiKey L_MOD = {1};
 const MultiKey R_MOD = {2};
 
