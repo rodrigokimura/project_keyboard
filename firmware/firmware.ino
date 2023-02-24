@@ -2,8 +2,11 @@
 
 #include "Wire.h"
 
+#include "Device.h"
 #include "Utils.h"
 #include "Keys.h"
+
+Device dev = Device("Kovu Keyboard", "Mono", "1");
 
 // PIN MAPPINGS
 const byte L_ROW_PINS[] = {5, 6, 7, 8, 9};

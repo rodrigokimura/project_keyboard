@@ -31,6 +31,6 @@ verify-core:
 
 upload:
 	@echo Compiling...
-	@arduino-cli compile --fqbn $(FQBN) firmware
+	@arduino-cli compile firmware --profile micro
 	@echo Uploading...
 	@arduino-cli upload -p $$($(USB)) --fqbn $(FQBN) firmware && echo Uploaded!
