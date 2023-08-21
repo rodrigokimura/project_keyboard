@@ -59,6 +59,7 @@ void setup()
 
 #ifdef MASTER
     Wire.begin();
+    Wire.setWireTimeout(1000, true);
     Keyboard.begin();
 #else
     Wire.begin(8);
