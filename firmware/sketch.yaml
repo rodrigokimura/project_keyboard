@@ -1,7 +1,7 @@
 profiles:
   micro:
     fqbn: arduino:avr:micro
-    platforms:
-      - platform: arduino:avr (1.8.6)
     libraries:
       - HID-Project (2.8.4)
+    platforms:
+      - platform: arduino:avr (1.8.6)
